@@ -13,6 +13,8 @@ MouseArea {
     // Part of the score being shown right now.
     property bool glowing
     property color glowColor: Theme.highlightColor
+    // A halo round the back; none when transparent.
+    property color backGlow: "transparent"
     // Follows faceDown halfway through the flip.
     property bool _back: cardId < 0 || faceDown
     readonly property bool faceUp: !_back
@@ -35,6 +37,22 @@ MouseArea {
         NumberAnimation { target: flipScale; property: "xScale"; to: 0; duration: 110; easing.type: Easing.InQuad }
         ScriptAction { script: root._back = root.cardId < 0 || root.faceDown }
         NumberAnimation { target: flipScale; property: "xScale"; to: 1; duration: 110; easing.type: Easing.OutQuad }
+    }
+
+    // The back's halo: outlines fading outwards, cheap enough for a whole pack.
+    Repeater {
+        model: !root.faceUp && root.backGlow.a > 0 ? 3 : 0
+        Rectangle {
+            readonly property real spread: (index + 1) * Math.max(1, Math.round(Theme.pixelRatio * 1.5))
+            x: face.x - spread
+            y: face.y - spread
+            width: face.width + 2 * spread
+            height: face.height + 2 * spread
+            radius: face.radius + spread
+            color: "transparent"
+            border.color: Theme.rgba(root.backGlow, root.backGlow.a * [0.55, 0.3, 0.12][index])
+            border.width: Math.max(1, Math.round(Theme.pixelRatio * 1.5))
+        }
     }
 
     // Soft halo behind a card that just scored.

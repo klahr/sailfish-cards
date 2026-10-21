@@ -20,7 +20,7 @@ function names(ids) {
     return out.join(" ")
 }
 
-// Player colours, the same in every game: you are blue, then red, green
-// and amber for the others.
-var playerColors = ["#4a9dff", "#ff5252", "#5ad16a", "#ffb340"]
-function playerColor(player) { return playerColors[player >= 1 && player <= 3 ? player : 0] }
+// Player colours, the same in every game: you are blue, then red, green,
+// amber and violet for the others.
+var playerColors = ["#4a9dff", "#ff5252", "#5ad16a", "#ffb340", "#c58bff"]
+function playerColor(player) { return playerColors[player >= 1 && player < playerColors.length ? player : 0] }

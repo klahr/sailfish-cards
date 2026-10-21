@@ -35,4 +35,12 @@ Cards parseCards(const std::string &text);
 // Ordered by suit, then from ace to king.
 Cards fullDeck();
 
+bool contains(const Cards &cards, const Card &card);
+// Takes out `card`, if it is there.
+void removeCard(Cards &cards, const Card &card);
+int countSuit(const Cards &cards, int suit);
+// Clubs, diamonds, spades, hearts, each from low to high, aces high: black
+// and red suits alternate, as a hand is held.
+void sortAlternating(Cards &cards);
+
 } // namespace cards

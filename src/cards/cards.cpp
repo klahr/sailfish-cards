@@ -1,5 +1,6 @@
 #include "card.h"
 
+#include <algorithm>
 #include <cctype>
 #include <stdexcept>
 
@@ -48,6 +49,33 @@ Cards fullDeck()
         for (int r = 1; r <= 13; ++r)
             deck.emplace_back(r, s);
     return deck;
+}
+
+bool contains(const Cards &cards, const Card &card)
+{
+    return std::find(cards.begin(), cards.end(), card) != cards.end();
+}
+
+void removeCard(Cards &cards, const Card &card)
+{
+    auto it = std::find(cards.begin(), cards.end(), card);
+    if (it != cards.end())
+        cards.erase(it);
+}
+
+int countSuit(const Cards &cards, int suit)
+{
+    return static_cast<int>(std::count_if(cards.begin(), cards.end(), [suit](const Card &c) { return c.suit == suit; }));
+}
+
+void sortAlternating(Cards &cards)
+{
+    static const int order[] = {0, 1, 3, 2};
+    std::sort(cards.begin(), cards.end(), [](const Card &a, const Card &b) {
+        if (a.suit != b.suit)
+            return order[a.suit] < order[b.suit];
+        return a.high() < b.high();
+    });
 }
 
 } // namespace cards
