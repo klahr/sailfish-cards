@@ -4,6 +4,7 @@
 #include <QSettings>
 #include <QTcpSocket>
 #include <QTimer>
+#include <QStringList>
 #include <QVariantList>
 #include <QVariantMap>
 
@@ -20,6 +21,10 @@ class Session : public QObject
     Q_PROPERTY(int status READ status NOTIFY statusChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     Q_PROPERTY(QVariantList games READ games NOTIFY gamesChanged)
+    Q_PROPERTY(QVariantList players READ players NOTIFY playersChanged)
+    Q_PROPERTY(bool listed READ listed WRITE setListed NOTIFY listedChanged)
+    Q_PROPERTY(QStringList invited READ invited NOTIFY invitedChanged)
+    Q_PROPERTY(QVariantMap invitation READ invitation NOTIFY invitationChanged)
     Q_PROPERTY(bool atTable READ atTable NOTIFY tableChanged)
     Q_PROPERTY(bool active READ active NOTIFY tableChanged)
     Q_PROPERTY(QString title READ title NOTIFY tableChanged)
@@ -51,6 +56,15 @@ public:
     QString error() const { return m_error; }
     // The tables of this game: id, title, players, locked, started and mine.
     QVariantList games() const { return m_games; }
+    // The others of this game in the lobby who can be invited: id and name.
+    QVariantList players() const { return m_players; }
+    // Shown to others in their list of players.
+    bool listed() const { return m_listed; }
+    void setListed(bool listed);
+    // The ids of the players invited to your table.
+    QStringList invited() const { return m_invited; }
+    // The latest invitation to a table: id, title and from; empty when none.
+    QVariantMap invitation() const { return m_invitation; }
 
     bool atTable() const { return !m_tableId.isEmpty() && m_seat >= 0; }
     // At a table whose game has begun: the controller plays it.
@@ -96,6 +110,10 @@ public:
     Q_INVOKABLE void leave();
     Q_INVOKABLE void start();
     Q_INVOKABLE void setBot(int seat, bool on);
+    // Asks a player from `players` to your table, before the start.
+    Q_INVOKABLE void invite(const QString &playerId);
+    Q_INVOKABLE void acceptInvitation();
+    Q_INVOKABLE void declineInvitation();
 
 signals:
     void nameChanged();
@@ -103,6 +121,10 @@ signals:
     void statusChanged();
     void errorChanged();
     void gamesChanged();
+    void playersChanged();
+    void listedChanged();
+    void invitedChanged();
+    void invitationChanged();
     void tableChanged();
     // The whole log came, on joining or coming back: replay `actions()`.
     void reset();
@@ -141,6 +163,10 @@ private:
     // Whether to stay connected, coming back after the network drops.
     bool m_wanted = false;
     QVariantList m_games;
+    QVariantList m_players;
+    bool m_listed = true;
+    QStringList m_invited;
+    QVariantMap m_invitation;
 
     QString m_tableId;
     QString m_title;

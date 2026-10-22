@@ -28,6 +28,7 @@ Session::Session(const QString &game, int seats, int maxSeats, QObject *parent)
     m_name = m_settings.value(QStringLiteral("online/name"), tr("Player")).toString();
     m_server = m_settings.value(QStringLiteral("online/server"), QStringLiteral(ONLINE_SERVER)).toString();
     m_token = m_settings.value(QStringLiteral("online/token")).toString();
+    m_listed = m_settings.value(QStringLiteral("online/listed"), true).toBool();
     // At a table when the app last closed: sit down again.
     m_tableId = m_settings.value(QStringLiteral("online/table")).toString();
 
@@ -46,7 +47,8 @@ Session::Session(const QString &game, int seats, int maxSeats, QObject *parent)
         write({{QStringLiteral("t"), QStringLiteral("hello")},
                {QStringLiteral("game"), m_game},
                {QStringLiteral("name"), m_name},
-               {QStringLiteral("token"), m_token}});
+               {QStringLiteral("token"), m_token},
+               {QStringLiteral("hidden"), !m_listed}});
         m_ping.start();
         m_watchdog.start(SilenceMs);
     });
@@ -79,6 +81,16 @@ void Session::setName(const QString &name)
     m_settings.setValue(QStringLiteral("online/name"), m_name);
     write({{QStringLiteral("t"), QStringLiteral("name")}, {QStringLiteral("name"), m_name}});
     emit nameChanged();
+}
+
+void Session::setListed(bool listed)
+{
+    if (listed == m_listed)
+        return;
+    m_listed = listed;
+    m_settings.setValue(QStringLiteral("online/listed"), m_listed);
+    write({{QStringLiteral("t"), QStringLiteral("visible")}, {QStringLiteral("on"), m_listed}});
+    emit listedChanged();
 }
 
 void Session::setServer(const QString &server)
@@ -172,6 +184,9 @@ void Session::disconnectFromServer()
     setStatus(Offline);
     clearTable();
     m_games.clear();
+    m_players.clear();
+    emit playersChanged();
+    declineInvitation();
     emit gamesChanged();
 }
 
@@ -265,10 +280,22 @@ void Session::receive(const QVariantMap &message)
         const QVariantMap a = message.value(QStringLiteral("a")).toMap();
         m_actions << a;
         emit action(a);
+    } else if (t == QLatin1String("players")) {
+        m_players = message.value(QStringLiteral("players")).toList();
+        emit playersChanged();
+    } else if (t == QLatin1String("invited")) {
+        if (atTable())
+            return;
+        m_invitation = {{QStringLiteral("id"), message.value(QStringLiteral("id"))},
+                        {QStringLiteral("title"), message.value(QStringLiteral("title"))},
+                        {QStringLiteral("from"), message.value(QStringLiteral("from"))}};
+        emit invitationChanged();
     } else if (t == QLatin1String("error")) {
         const QString msg = message.value(QStringLiteral("msg")).toString();
         if (msg == QLatin1String("wrong password"))
             setError(tr("Wrong password"));
+        else if (msg == QLatin1String("no such player"))
+            setError(tr("The player has gone"));
         else if (msg == QLatin1String("game full"))
             setError(tr("The table is full"));
         else if (msg == QLatin1String("no such game")) {
@@ -339,5 +366,32 @@ void Session::clearTable()
     m_seats.clear();
     m_actions.clear();
     setSynced(false);
+    m_invited.clear();
+    emit invitedChanged();
     emit tableChanged();
+}
+
+void Session::invite(const QString &playerId)
+{
+    if (!atTable() || m_started || m_invited.contains(playerId))
+        return;
+    write({{QStringLiteral("t"), QStringLiteral("invite")}, {QStringLiteral("id"), playerId}});
+    m_invited << playerId;
+    emit invitedChanged();
+}
+
+void Session::acceptInvitation()
+{
+    const QString id = m_invitation.value(QStringLiteral("id")).toString();
+    declineInvitation();
+    if (!id.isEmpty())
+        join(id);
+}
+
+void Session::declineInvitation()
+{
+    if (m_invitation.isEmpty())
+        return;
+    m_invitation.clear();
+    emit invitationChanged();
 }

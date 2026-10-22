@@ -72,7 +72,7 @@ Page {
             }
             TextField {
                 width: parent.width
-                label: qsTr("Your name")
+                label: qsTr("Your nickname")
                 placeholderText: label
                 text: online.name
                 EnterKey.iconSource: "image://theme/icon-m-enter-close"
@@ -89,6 +89,12 @@ Page {
                 EnterKey.onClicked: focus = false
                 onActiveFocusChanged: if (!activeFocus) online.server = text
             }
+            TextSwitch {
+                text: qsTr("Show me to other players")
+                description: qsTr("Players waiting at a table can see your nickname and invite you.")
+                checked: online.listed
+                onCheckedChanged: online.listed = checked
+            }
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * x
@@ -96,6 +102,36 @@ Page {
                 text: online.error
                 color: Theme.errorColor
                 wrapMode: Text.Wrap
+            }
+            // An invitation to someone's table, until you answer it.
+            Column {
+                width: parent.width
+                visible: online.invitation.id !== undefined
+                spacing: Theme.paddingMedium
+
+                SectionHeader { text: qsTr("Invitation") }
+                Label {
+                    x: Theme.horizontalPageMargin
+                    width: parent.width - 2 * x
+                    text: online.invitation.title
+                          ? qsTr("%1 invites you to %2.").arg(online.invitation.from || qsTr("Someone")).arg(online.invitation.title)
+                          : qsTr("%1 invites you to their table.").arg(online.invitation.from || qsTr("Someone"))
+                    color: Theme.highlightColor
+                    wrapMode: Text.Wrap
+                }
+                Row {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: Theme.paddingLarge
+
+                    Button {
+                        text: qsTr("No thanks")
+                        onClicked: online.declineInvitation()
+                    }
+                    Button {
+                        text: qsTr("Join")
+                        onClicked: online.acceptInvitation()
+                    }
+                }
             }
             SectionHeader {
                 text: qsTr("Games")

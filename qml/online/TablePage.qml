@@ -116,17 +116,73 @@ Page {
             }
         }
 
-        footer: Item {
+        footer: Column {
             width: list.width
-            height: start.visible ? start.height + 2 * Theme.paddingLarge : 0
 
-            Button {
-                id: start
+            Item {
+                width: parent.width
+                height: start.visible ? start.height + 2 * Theme.paddingLarge : 0
 
-                anchors.centerIn: parent
-                visible: online.admin && !online.started
-                text: qsTr("Start")
-                onClicked: online.start()
+                Button {
+                    id: start
+
+                    anchors.centerIn: parent
+                    visible: online.admin && !online.started
+                    text: qsTr("Start")
+                    onClicked: online.start()
+                }
+            }
+            // Players in the lobby, to ask to the empty seats.
+            SectionHeader {
+                text: qsTr("Invite players")
+                visible: !online.started
+            }
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * x
+                visible: !online.started && online.players.length === 0
+                text: qsTr("No one else is in the lobby.")
+                color: Theme.secondaryHighlightColor
+                wrapMode: Text.Wrap
+                bottomPadding: Theme.paddingMedium
+            }
+            Repeater {
+                model: online.started ? [] : online.players
+
+                BackgroundItem {
+                    id: player
+
+                    readonly property bool invited: online.invited.indexOf(modelData.id) >= 0
+
+                    width: parent.width
+                    enabled: !invited
+                    onClicked: online.invite(modelData.id)
+
+                    Label {
+                        anchors {
+                            left: parent.left
+                            leftMargin: Theme.horizontalPageMargin
+                            right: invitedLabel.left
+                            rightMargin: Theme.paddingMedium
+                            verticalCenter: parent.verticalCenter
+                        }
+                        text: modelData.name || qsTr("Player")
+                        color: player.highlighted ? Theme.highlightColor : Theme.primaryColor
+                        truncationMode: TruncationMode.Fade
+                    }
+                    Label {
+                        id: invitedLabel
+
+                        anchors {
+                            right: parent.right
+                            rightMargin: Theme.horizontalPageMargin
+                            verticalCenter: parent.verticalCenter
+                        }
+                        text: player.invited ? qsTr("Invited") : qsTr("Invite")
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: player.invited ? Theme.secondaryColor : Theme.highlightColor
+                    }
+                }
             }
         }
 
