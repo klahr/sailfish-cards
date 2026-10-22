@@ -2,7 +2,7 @@ import QtQuick 2.6
 import Sailfish.Silica 1.0
 
 // The games on the server: join one, or set up your own. Once you sit down,
-// the table takes the lobby's place, or the game itself if it has begun.
+// the table opens on top of the lobby, or the game itself if it has begun.
 Page {
     id: page
 
@@ -12,7 +12,7 @@ Page {
         if (online.started)
             pageStack.pop()
         else
-            pageStack.replace(Qt.resolvedUrl("TablePage.qml"))
+            pageStack.push(Qt.resolvedUrl("TablePage.qml"), { fromLobby: true })
     }
 
     function title(game) {
@@ -36,7 +36,13 @@ Page {
     Component.onCompleted: online.connectToServer()
     // Not at a table: no need to stay connected.
     Component.onDestruction: if (!online.atTable) online.disconnectFromServer()
-    onStatusChanged: seated()
+    onStatusChanged: {
+        // Back from a table that has not started: that leaves it.
+        if (status === PageStatus.Active && online.atTable && !online.started)
+            online.leave()
+        else
+            seated()
+    }
 
     Connections {
         target: online

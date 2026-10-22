@@ -8,6 +8,8 @@ Page {
 
     // Opened before the start: when it comes, the game takes over.
     property bool waiting
+    // Over the lobby, which then leaves the table when you go back to it.
+    property bool fromLobby
 
     function update() {
         if (status !== PageStatus.Active)
@@ -19,8 +21,16 @@ Page {
     }
 
     Component.onCompleted: waiting = !online.started
-    // Not at a table: no need to stay connected.
-    Component.onDestruction: if (!online.atTable) online.disconnectFromServer()
+    Component.onDestruction: {
+        if (fromLobby)
+            return
+        // Going back before the start leaves the table.
+        if (online.atTable && !online.started)
+            online.leave()
+        // Not at a table: no need to stay connected.
+        if (!online.atTable)
+            online.disconnectFromServer()
+    }
     onStatusChanged: update()
 
     Connections {
