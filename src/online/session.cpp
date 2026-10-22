@@ -48,7 +48,8 @@ Session::Session(const QString &game, int seats, int maxSeats, QObject *parent)
                {QStringLiteral("game"), m_game},
                {QStringLiteral("name"), m_name},
                {QStringLiteral("token"), m_token},
-               {QStringLiteral("hidden"), !m_listed}});
+               {QStringLiteral("hidden"), !m_listed},
+               {QStringLiteral("v"), ONLINE_VERSION}});
         m_ping.start();
         m_watchdog.start(SilenceMs);
     });
@@ -292,7 +293,11 @@ void Session::receive(const QVariantMap &message)
         emit invitationChanged();
     } else if (t == QLatin1String("error")) {
         const QString msg = message.value(QStringLiteral("msg")).toString();
-        if (msg == QLatin1String("wrong password"))
+        if (msg == QLatin1String("update")) {
+            // The server hangs up: trying again would not help.
+            disconnectFromServer();
+            setError(tr("Update the app to play online"));
+        } else if (msg == QLatin1String("wrong password"))
             setError(tr("Wrong password"));
         else if (msg == QLatin1String("no such player"))
             setError(tr("The player has gone"));

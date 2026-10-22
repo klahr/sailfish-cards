@@ -10,6 +10,11 @@
 isEmpty(ONLINE_SERVER): ONLINE_SERVER = cards.r8.rs:7777
 DEFINES += ONLINE_SERVER=\\\"$$ONLINE_SERVER\\\"
 
+# The game's version of the protocol and its moves. Raise it in the game's .pro, before
+# this include, when the moves change; the server's -min-version then turns old apps away.
+isEmpty(ONLINE_VERSION): ONLINE_VERSION = 1
+DEFINES += ONLINE_VERSION=$$ONLINE_VERSION
+
 QT += network
 INCLUDEPATH += $$PWD/src
 SOURCES += $$PWD/src/online/session.cpp
