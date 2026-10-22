@@ -116,6 +116,15 @@ bool Session::isBot(int seat) const
            && m_seats.at(seat).toMap().value(QStringLiteral("bot")).toBool();
 }
 
+bool Session::away(int seat) const
+{
+    if (!active() || seat < 0 || seat >= m_seats.size())
+        return false;
+    const QVariantMap s = m_seats.at(seat).toMap();
+    return s.value(QStringLiteral("human")).toBool() && !s.value(QStringLiteral("online")).toBool()
+           && !s.value(QStringLiteral("bot")).toBool();
+}
+
 QString Session::playerName(int seat) const
 {
     if (seat < 0 || seat >= m_seats.size())

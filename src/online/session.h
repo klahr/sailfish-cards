@@ -72,11 +72,13 @@ public:
     // players: from the table's seats, -1 for no such seat, and back. Left
     // as they are when no online game is on.
     int toLocal(int seat) const;
-    int toTable(int player) const;
+    Q_INVOKABLE int toTable(int player) const;
 
     // Plays the bots, deals and moves the game on: one app at the table does.
     bool driver() const { return atTable() && m_driver == m_seat; }
     bool isBot(int seat) const;
+    // A player who has lost the connection, with no bot playing meanwhile.
+    Q_INVOKABLE bool away(int seat) const;
     // A player's name, or a stand-in for a bot.
     Q_INVOKABLE QString playerName(int seat) const;
     // The log has come since sitting down or the last lost connection.

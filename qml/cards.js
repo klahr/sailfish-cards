@@ -24,3 +24,13 @@ function names(ids) {
 // amber and violet for the others.
 var playerColors = ["#4a9dff", "#ff5252", "#5ad16a", "#ffb340", "#c58bff"]
 function playerColor(player) { return playerColors[player >= 1 && player < playerColors.length ? player : 0] }
+
+// A player's colour gone grey and faint, for one who has lost the connection
+// and has no bot playing for them.
+function awayColor(player) {
+    var c = playerColor(player)
+    var grey = Math.round(0.299 * parseInt(c.substr(1, 2), 16) + 0.587 * parseInt(c.substr(3, 2), 16)
+                          + 0.114 * parseInt(c.substr(5, 2), 16))
+    var hex = (grey < 16 ? "0" : "") + grey.toString(16)
+    return "#80" + hex + hex + hex
+}
