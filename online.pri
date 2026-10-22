@@ -7,7 +7,7 @@
 # and `import "../online"` for a ConnectionBanner on the game page.
 
 # The server a new player connects to; they can change it in the lobby.
-isEmpty(ONLINE_SERVER): ONLINE_SERVER = localhost:7777
+isEmpty(ONLINE_SERVER): ONLINE_SERVER = cards.r8.rs:7777
 DEFINES += ONLINE_SERVER=\\\"$$ONLINE_SERVER\\\"
 
 QT += network
